@@ -25,6 +25,7 @@ var (
 	ctx = context.Background()
 
 	my_account, _ = c.GetAccountCurrentUser(ctx)
+	boostsenabled = true
 )
 
 type APobject struct {
@@ -70,7 +71,7 @@ func CheckAPReply(tooturl string) (bool) {
 		return false
 	}
 	if apobj.InReplyTo != nil {
-		WarnLogger.Printf("AP object of status detected reply: %s", apobj.InReplyTo)
+		WarnLogger.Printf("AP object of status detected reply: %s", &apobj.InReplyTo)
 		return true
 	}
 	return false
@@ -126,6 +127,9 @@ func RunBot() {
 			// Follow check
 			if relationship[0].FollowedBy {
 				if notif.Status.Visibility == "public" { // Reblog toot
+					if boostsenabled == false {
+						continue
+					}
 					var APreply bool
 					APreply = false
 					if notif.Status.InReplyToID == nil {
@@ -192,8 +196,25 @@ func RunBot() {
 								case "delete":
 									c.DeleteStatus(ctx, mID)
 									WarnLogger.Printf("%s was deleted", mID)
+								case "disable":
+									boostsenabled = false
+									WarnLogger.Printf("Reblogs disabled by admin")
+								case "enable":
+									boostsenabled = true
+									WarnLogger.Printf("Reblogs enabled by admin")
 								default:
 									WarnLogger.Printf("%s entered wrong command", acct)
+								}
+							} else if len(args) == 2 {
+								switch args[1] {
+									case "disable":
+										boostsenabled = false
+										WarnLogger.Printf("Reblogs disabled by admin")
+									case "enable":
+										boostsenabled = true
+										WarnLogger.Printf("Reblogs enabled by admin")
+									default:
+										WarnLogger.Printf("%s entered wrong command", acct)
 								}
 							} else {
 								WarnLogger.Printf("%s entered wrong command", acct)
