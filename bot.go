@@ -52,7 +52,7 @@ func CheckAPReply(tooturl string) bool {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		ErrorLogger.Printf("AP get: Server was return %s http code %s", resp.StatusCode, resp.Body)
+		ErrorLogger.Printf("AP get: Server was return %d http code %s", resp.StatusCode, resp.Body)
 		return false
 	}
 
@@ -71,7 +71,7 @@ func CheckAPReply(tooturl string) bool {
 		return false
 	}
 	if apobj.InReplyTo != nil {
-		WarnLogger.Printf("AP object of status detected reply: %s", &apobj.InReplyTo)
+		WarnLogger.Printf("AP object of status detected reply: %s", *apobj.InReplyTo)
 		return true
 	}
 	return false
