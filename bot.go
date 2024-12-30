@@ -1,15 +1,15 @@
 package main
 
 import (
+	"compress/gzip"
 	"context"
 	"crypto/sha512"
+	"encoding/json"
 	"fmt"
-	"regexp"
-	"strings"
 	"io"
 	"net/http"
-	"encoding/json"
-	"compress/gzip"
+	"regexp"
+	"strings"
 
 	"github.com/mattn/go-mastodon"
 )
@@ -32,10 +32,10 @@ type APobject struct {
 	InReplyTo *string `json:"inReplyTo"`
 }
 
-//CheckAPReply return is reply bool of status
-//Note: Not working with servers when they required Authorized fetch
-//Note: By default false
-func CheckAPReply(tooturl string) (bool) {
+// CheckAPReply return is reply bool of status
+// Note: Not working with servers when they required Authorized fetch
+// Note: By default false
+func CheckAPReply(tooturl string) bool {
 	var apobj APobject
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, tooturl, nil)
@@ -55,15 +55,15 @@ func CheckAPReply(tooturl string) (bool) {
 		ErrorLogger.Printf("AP get: Server was return %s http code %s", resp.StatusCode, resp.Body)
 		return false
 	}
-	
+
 	var reader io.ReadCloser
 	switch resp.Header.Get("Content-Encoding") {
 	case "gzip":
-                reader, err = gzip.NewReader(resp.Body)
-                defer reader.Close()
-        default:
-                reader = resp.Body
-        }
+		reader, err = gzip.NewReader(resp.Body)
+		defer reader.Close()
+	default:
+		reader = resp.Body
+	}
 
 	err = json.NewDecoder(reader).Decode(&apobj)
 	if err != nil {
@@ -133,7 +133,7 @@ func RunBot() {
 					var APreply bool
 					APreply = false
 					if notif.Status.InReplyToID == nil {
-						// Replies protection by get ActivityPub object 
+						// Replies protection by get ActivityPub object
 						// (if breaking threads)
 						APreply = CheckAPReply(tooturl)
 					}
@@ -207,14 +207,14 @@ func RunBot() {
 								}
 							} else if len(args) == 2 {
 								switch args[1] {
-									case "disable":
-										boostsenabled = false
-										WarnLogger.Printf("Reblogs disabled by admin")
-									case "enable":
-										boostsenabled = true
-										WarnLogger.Printf("Reblogs enabled by admin")
-									default:
-										WarnLogger.Printf("%s entered wrong command", acct)
+								case "disable":
+									boostsenabled = false
+									WarnLogger.Printf("Reblogs disabled by admin")
+								case "enable":
+									boostsenabled = true
+									WarnLogger.Printf("Reblogs enabled by admin")
+								default:
+									WarnLogger.Printf("%s entered wrong command", acct)
 								}
 							} else {
 								WarnLogger.Printf("%s entered wrong command", acct)
