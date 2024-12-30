@@ -7,6 +7,8 @@ RUN go mod init mastodon-group-bot && \
   go mod tidy && \
   go build -o /mastodon-group-bot
 
+FROM alpine:3.20
+COPY --from=build /mastodon-group-bot /mastodon-group-bot
 VOLUME ["/data"]
 ENTRYPOINT ["/mastodon-group-bot"]
 CMD [ "-config", "/data/config.json", "-db", "/data/limits.db", "-log", "/data/mastodon-group-bot.log" ]
